@@ -1,6 +1,9 @@
 name: Build firmwares
 
 on:
+  push:
+    branches:
+      - sonoff-e-router-9.1.1-ieee-d6
   workflow_dispatch:
     inputs:
       manifest_glob:
@@ -149,7 +152,7 @@ jobs:
 
       - id: set-matrix
         run: |
-          echo "matrix=$(find manifests -type f \( -name "${{ inputs.manifest_glob || '*' }}.yaml" -o -name "${{ inputs.manifest_glob || '*' }}.yml" \) -print | sort | jq -R -s -c 'split("\n")[:-1]')" >> $GITHUB_OUTPUT
+          echo "matrix=$(find manifests -type f \( -name "${{ inputs.manifest_glob || 'sonoff_zbdonglee_zigbee_router' }}.yaml" -o -name "${{ inputs.manifest_glob || '*' }}.yml" \) -print | sort | jq -R -s -c 'split("\n")[:-1]')" >> $GITHUB_OUTPUT
 
   build-firmwares:
     name: Firmware builder
