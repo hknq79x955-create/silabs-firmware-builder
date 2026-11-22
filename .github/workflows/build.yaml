@@ -71,26 +71,13 @@ jobs:
 
           tag_name=$(echo "${{ hashFiles('Dockerfile', 'requirements.txt') }}" | cut -c-16)
 
-          # Default to building a new container under the original repo
-          image_name=$head_image
-          build_image=true
-
-          # Check if we can use the base image (Nabu Casa)
-          if docker manifest inspect ${{ env.REGISTRY }}/$base_image:$tag_name; then
-            image_name=$base_image
-            build_image=false
-          fi
-
-          # Check if we can use the head image (if this is a PR)
-          if [[ $base_image != $head_image ]]; then
-            if docker manifest inspect ${{ env.REGISTRY }}/$head_image:$tag_name; then
-              image_name=$head_image
-              build_image=false
-            fi
-          fi
-
-          if [[ $build_image == "true" && $GITHUB_EVENT_NAME == "pull_request" ]]; then
-            echo "Cannot build a new container within a PR. Please re-run this action after $head_image:$tag_name is built."
+          # This fork is based on Nerivec's v2026.6.1-pre3, so reuse
+          # the matching *upstream* prebuilt toolchain image rather than
+          # rebuilding it (Silabs CLI download returns HTTP 403 in Actions).
+          image_name=nerivec/silabs-firmware-builder
+          build_image=false
+          if ! docker manifest inspect "${{ env.REGISTRY }}/$image_name:$tag_name"; then
+            echo "::error::Matching upstream prebuilt image not published: ${{ env.REGISTRY }}/$image_name:$tag_name"
             exit 1
           fi
 
